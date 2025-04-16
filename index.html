@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Копирование текста</title>
+    <style>
+        /* Стили для контейнера с текстом и кнопкой */
+        .copy-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background-color: #f5f5f5;
+            border-radius: 6px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .copy-text {
+            font-size: 16px;
+            color: #333;
+        }
+        
+        /* Стили для кнопки копирования */
+        .copy-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .copy-btn:hover {
+            background: #3a5ce4;
+        }
+        
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Иконка копирования (можно заменить на свою) */
+        .copy-icon {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Уведомление о копировании */
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .copy-notification.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Пример использования -->
+    <div class="copy-container">
+        <span class="copy-text" id="email-to-copy">contact@example.com</span>
+        <button class="copy-btn" title="Скопировать" onclick="copyToClipboard('email-to-copy')">
+            <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        </button>
+    </div>
+    
+    <!-- Уведомление -->
+    <div class="copy-notification" id="copy-notification">Скопировано!</div>
+    
+    <script>
+        // Основная функция копирования
+        async function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            
+            try {
+                // Пробуем современный API
+                await navigator.clipboard.writeText(text);
+                showNotification();
+            } catch (err) {
+                // Fallback для старых браузеров
+                fallbackCopyText(text);
+            }
+        }
+        
+        // Метод для старых браузеров
+        function fallbackCopyText(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed'; // Чтобы не было прокрутки страницы
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showNotification();
+            } catch (err) {
+                console.error('Не удалось скопировать текст: ', err);
+                alert('Не удалось скопировать текст. Скопируйте его вручную.');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+        
+        // Показываем уведомление
+        function showNotification() {
+            const notification = document.getElementById('copy-notification');
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Можно добавить автоматическую привязку ко всем элементам с классом copy-btn
+        document.addEventListener('DOMContentLoaded', function() {
+            const copyButtons = document.querySelectorAll('[data-copy-target]');
+            
+            copyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-copy-target');
+                    copyToClipboard(targetId);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
